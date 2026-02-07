@@ -108,6 +108,12 @@ I highly recommend to add a bounty to the issue that you're waiting for to incre
     - [- HOC wrapping a component](#--hoc-wrapping-a-component)
     - [- HOC wrapping a component and injecting props](#--hoc-wrapping-a-component-and-injecting-props)
     - [- Nested HOC - wrapping a component, injecting props and connecting to redux 🌟](#--nested-hoc---wrapping-a-component-injecting-props-and-connecting-to-redux-)
+  - [Recompose](#recompose)
+    - [- withState](#--withstate)
+    - [- withHandlers](#--withhandlers)
+    - [- withProps](#--withprops)
+    - [- lifecycle](#--lifecycle)
+    - [- compose](#--compose)
   - [Redux Connected Components](#redux-connected-components)
     - [- Redux connected counter](#--redux-connected-counter)
     - [- Redux connected counter with own props](#--redux-connected-counter-with-own-props)
@@ -435,6 +441,91 @@ Adds error handling using componentDidCatch to any component
 
 ::codeblock='playground/src/hoc/with-connected-count.tsx'::
 ::expander='playground/src/hoc/with-connected-count.usage.tsx'::
+
+[⇧ back to top](#table-of-contents)
+
+---
+
+## Recompose
+
+> **⚠️ DEPRECATION NOTICE:** Recompose is no longer actively maintained. The React team recommends using [React Hooks](#hooks) instead, which provide a more powerful and flexible way to reuse stateful logic between components. The examples below are provided for historical reference and to help with migrating legacy code.
+
+Recompose is a popular library for composing React components using higher-order component (HOC) patterns. Below are TypeScript examples of common Recompose utilities, along with their modern React Hooks equivalents.
+
+> <https://github.com/acdlite/recompose>
+
+### - withState
+
+Adds state management to a stateless component.
+
+**Recompose approach:**
+
+::codeblock='playground/src/recompose-examples/with-state-recompose.tsx'::
+::expander='playground/src/recompose-examples/with-state-recompose.usage.tsx'::
+
+**Modern React Hooks equivalent:**
+
+::codeblock='playground/src/recompose-examples/hooks-equivalent-state.tsx'::
+
+[⇧ back to top](#table-of-contents)
+
+### - withHandlers
+
+Adds handler functions to props.
+
+**Recompose approach:**
+
+::codeblock='playground/src/recompose-examples/with-handlers.tsx'::
+::expander='playground/src/recompose-examples/with-handlers.usage.tsx'::
+
+**Modern React Hooks equivalent:**
+
+::codeblock='playground/src/recompose-examples/hooks-equivalent-handlers.tsx'::
+
+[⇧ back to top](#table-of-contents)
+
+### - withProps
+
+Injects computed props derived from other props.
+
+**Recompose approach:**
+
+::codeblock='playground/src/recompose-examples/with-props.tsx'::
+::expander='playground/src/recompose-examples/with-props.usage.tsx'::
+
+**Modern React Hooks equivalent:**
+
+::codeblock='playground/src/recompose-examples/hooks-equivalent-props.tsx'::
+
+[⇧ back to top](#table-of-contents)
+
+### - lifecycle
+
+Adds lifecycle hooks to a functional component.
+
+**Recompose approach:**
+
+::codeblock='playground/src/recompose-examples/lifecycle-hooks.tsx'::
+::expander='playground/src/recompose-examples/lifecycle-hooks.usage.tsx'::
+
+**Modern React Hooks equivalent:**
+
+::codeblock='playground/src/recompose-examples/hooks-equivalent-lifecycle.tsx'::
+
+[⇧ back to top](#table-of-contents)
+
+### - compose
+
+Combines multiple HOCs into a single HOC.
+
+**Recompose approach:**
+
+::codeblock='playground/src/recompose-examples/compose-multiple.tsx'::
+::expander='playground/src/recompose-examples/compose-multiple.usage.tsx'::
+
+**Modern React Hooks equivalent:**
+
+::codeblock='playground/src/recompose-examples/hooks-equivalent-compose.tsx'::
 
 [⇧ back to top](#table-of-contents)
 
