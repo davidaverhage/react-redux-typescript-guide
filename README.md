@@ -108,6 +108,12 @@ I highly recommend to add a bounty to the issue that you're waiting for to incre
     - [- HOC wrapping a component](#--hoc-wrapping-a-component)
     - [- HOC wrapping a component and injecting props](#--hoc-wrapping-a-component-and-injecting-props)
     - [- Nested HOC - wrapping a component, injecting props and connecting to redux 🌟](#--nested-hoc---wrapping-a-component-injecting-props-and-connecting-to-redux-)
+  - [Recompose](#recompose)
+    - [- withState](#--withstate)
+    - [- withHandlers](#--withhandlers)
+    - [- withProps](#--withprops)
+    - [- lifecycle](#--lifecycle)
+    - [- compose](#--compose)
   - [Redux Connected Components](#redux-connected-components)
     - [- Redux connected counter](#--redux-connected-counter)
     - [- Redux connected counter with own props](#--redux-connected-counter-with-own-props)
@@ -971,6 +977,609 @@ export default () => (
 
 ```
 </p></details>
+
+[⇧ back to top](#table-of-contents)
+
+---
+
+## Recompose
+
+> **⚠️ DEPRECATION NOTICE:** Recompose is no longer actively maintained. The React team recommends using [React Hooks](#hooks) instead, which provide a more powerful and flexible way to reuse stateful logic between components. The examples below are provided for historical reference and to help with migrating legacy code.
+
+Recompose is a popular library for composing React components using higher-order component (HOC) patterns. Below are TypeScript examples of common Recompose utilities, along with their modern React Hooks equivalents.
+
+> <https://github.com/acdlite/recompose>
+
+### - withState
+
+Adds state management to a stateless component.
+
+**Recompose approach:**
+
+```tsx
+import React from 'react';
+import { withState, compose } from 'recompose';
+
+// Outer props (what the user passes)
+interface OuterProps {
+  label: string;
+}
+
+// Props with injected state
+interface CounterProps extends OuterProps {
+  count: number;
+  setCount: (count: number | ((prev: number) => number)) => void;
+}
+
+// Base component
+const Counter: React.FC<CounterProps> = ({ label, count, setCount }) => (
+  <div>
+    <span>
+      {label}: {count}
+    </span>
+    <button onClick={() => setCount((n: number) => n + 1)}>Increment</button>
+  </div>
+);
+
+// Enhanced component with state using recompose
+export const CounterWithState = compose<CounterProps, OuterProps>(
+  withState('count', 'setCount', 0)
+)(Counter);
+
+```
+<details><summary><i>Click to expand</i></summary><p>
+
+```tsx
+import React from 'react';
+import { CounterWithState } from './with-state-recompose';
+
+export default () => <CounterWithState label="Counter" />;
+
+```
+</p></details>
+
+**Modern React Hooks equivalent:**
+
+```tsx
+import React, { useState } from 'react';
+
+// Component props interface
+interface CounterProps {
+  label: string;
+  initialCount?: number;
+}
+
+// Modern React Hooks equivalent of recompose withState
+export const CounterWithHooks: React.FC<CounterProps> = ({ 
+  label, 
+  initialCount = 0 
+}) => {
+  const [count, setCount] = useState(initialCount);
+
+  return (
+    <div>
+      <span>
+        {label}: {count}
+      </span>
+      <button onClick={() => setCount((prev) => prev + 1)}>Increment</button>
+    </div>
+  );
+};
+
+```
+
+[⇧ back to top](#table-of-contents)
+
+### - withHandlers
+
+Adds handler functions to props.
+
+**Recompose approach:**
+
+```tsx
+import React from 'react';
+import { withState, withHandlers, compose } from 'recompose';
+
+// Outer props (what the user passes)
+interface OuterProps {
+  label: string;
+  initialCount?: number;
+}
+
+// Component props interface with all injected props
+interface CounterProps extends OuterProps {
+  count: number;
+  onIncrement: () => void;
+  onDecrement: () => void;
+  onReset: () => void;
+}
+
+// Base component
+const Counter: React.FC<CounterProps> = ({ 
+  label, 
+  count, 
+  onIncrement, 
+  onDecrement, 
+  onReset 
+}) => (
+  <div>
+    <span>
+      {label}: {count}
+    </span>
+    <button onClick={onIncrement}>+</button>
+    <button onClick={onDecrement}>-</button>
+    <button onClick={onReset}>Reset</button>
+  </div>
+);
+
+// Props that include state
+interface WithCounterState extends OuterProps {
+  count: number;
+  setCount: (count: number | ((prevCount: number) => number)) => void;
+}
+
+// Enhanced component with state and handlers
+export const CounterWithHandlers = compose<CounterProps, OuterProps>(
+  withState('count', 'setCount', (props: OuterProps) => props.initialCount || 0),
+  withHandlers<WithCounterState, Pick<CounterProps, 'onIncrement' | 'onDecrement' | 'onReset'>>({
+    onIncrement: ({ setCount }: WithCounterState) => () => setCount((n: number) => n + 1),
+    onDecrement: ({ setCount }: WithCounterState) => () => setCount((n: number) => n - 1),
+    onReset: ({ setCount, initialCount = 0 }: WithCounterState) => () => setCount(initialCount),
+  })
+)(Counter);
+
+```
+<details><summary><i>Click to expand</i></summary><p>
+
+```tsx
+import React from 'react';
+import { CounterWithHandlers } from './with-handlers';
+
+export default () => (
+  <CounterWithHandlers label="Counter with Handlers" initialCount={10} />
+);
+
+```
+</p></details>
+
+**Modern React Hooks equivalent:**
+
+```tsx
+import React, { useState, useCallback } from 'react';
+
+// Component props interface
+interface CounterProps {
+  label: string;
+  initialCount?: number;
+}
+
+// Modern React Hooks equivalent of recompose withState + withHandlers
+export const CounterWithHooks: React.FC<CounterProps> = ({ 
+  label, 
+  initialCount = 0 
+}) => {
+  const [count, setCount] = useState(initialCount);
+
+  // useCallback memoizes handlers (similar to withHandlers)
+  const onIncrement = useCallback(() => {
+    setCount((n) => n + 1);
+  }, []);
+
+  const onDecrement = useCallback(() => {
+    setCount((n) => n - 1);
+  }, []);
+
+  const onReset = useCallback(() => {
+    setCount(initialCount);
+  }, [initialCount]);
+
+  return (
+    <div>
+      <span>
+        {label}: {count}
+      </span>
+      <button onClick={onIncrement}>+</button>
+      <button onClick={onDecrement}>-</button>
+      <button onClick={onReset}>Reset</button>
+    </div>
+  );
+};
+
+```
+
+[⇧ back to top](#table-of-contents)
+
+### - withProps
+
+Injects computed props derived from other props.
+
+**Recompose approach:**
+
+```tsx
+import React from 'react';
+import { withProps } from 'recompose';
+
+// User data interface
+interface User {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+// Component props with computed props
+interface UserCardProps {
+  user: User;
+  fullName: string;
+  initials: string;
+}
+
+// Base component
+const UserCard: React.FC<UserCardProps> = ({ user, fullName, initials }) => (
+  <div>
+    <div>
+      <strong>{initials}</strong> - {fullName}
+    </div>
+    <div>Email: {user.email}</div>
+  </div>
+);
+
+// Enhanced component with computed props
+export const UserCardWithProps = withProps<
+  { fullName: string; initials: string }, // props to inject
+  { user: User } // outer props
+>(({ user }) => ({
+  fullName: `${user.firstName} ${user.lastName}`,
+  initials: `${user.firstName[0] || ''}${user.lastName[0] || ''}`,
+}))(UserCard);
+
+```
+<details><summary><i>Click to expand</i></summary><p>
+
+```tsx
+import React from 'react';
+import { UserCardWithProps } from './with-props';
+
+const sampleUser = {
+  firstName: 'John',
+  lastName: 'Doe',
+  email: 'john.doe@example.com',
+};
+
+export default () => <UserCardWithProps user={sampleUser} />;
+
+```
+</p></details>
+
+**Modern React Hooks equivalent:**
+
+```tsx
+import React, { useMemo } from 'react';
+
+// User data interface
+interface User {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+// Component props
+interface UserCardProps {
+  user: User;
+}
+
+// Modern React Hooks equivalent of recompose withProps
+export const UserCardWithHooks: React.FC<UserCardProps> = ({ user }) => {
+  // useMemo for computed/derived props (similar to withProps)
+  const fullName = useMemo(
+    () => `${user.firstName} ${user.lastName}`,
+    [user.firstName, user.lastName]
+  );
+
+  const initials = useMemo(
+    () => `${user.firstName[0] || ''}${user.lastName[0] || ''}`,
+    [user.firstName, user.lastName]
+  );
+
+  return (
+    <div>
+      <div>
+        <strong>{initials}</strong> - {fullName}
+      </div>
+      <div>Email: {user.email}</div>
+    </div>
+  );
+};
+
+```
+
+[⇧ back to top](#table-of-contents)
+
+### - lifecycle
+
+Adds lifecycle hooks to a functional component.
+
+**Recompose approach:**
+
+```tsx
+import React from 'react';
+import { lifecycle, withState, compose } from 'recompose';
+
+// Component props interface
+interface DataDisplayProps {
+  data: string | null;
+  loading: boolean;
+  error: string | null;
+}
+
+// Base component
+const DataDisplay: React.FC<DataDisplayProps> = ({ data, loading, error }) => {
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  return <div>Data: {data}</div>;
+};
+
+// State interface for the enhanced component
+interface WithDataState {
+  data: string | null;
+  loading: boolean;
+  error: string | null;
+  setData: (data: string | null) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+}
+
+// Enhanced component with lifecycle hooks
+export const DataDisplayWithLifecycle = compose<
+  DataDisplayProps,
+  { dataSource: string }
+>(
+  withState('data', 'setData', null),
+  withState('loading', 'setLoading', true),
+  withState('error', 'setError', null),
+  lifecycle<WithDataState & { dataSource: string }, {}>({
+    componentDidMount() {
+      // Simulate async data fetch
+      setTimeout(() => {
+        try {
+          this.props.setData(`Fetched from ${this.props.dataSource}`);
+          this.props.setLoading(false);
+        } catch (err) {
+          this.props.setError('Failed to fetch data');
+          this.props.setLoading(false);
+        }
+      }, 1000);
+    },
+    componentWillUnmount() {
+      // Cleanup if needed
+      console.log('Component unmounting');
+    },
+  })
+)(DataDisplay);
+
+```
+<details><summary><i>Click to expand</i></summary><p>
+
+```tsx
+import React from 'react';
+import { DataDisplayWithLifecycle } from './lifecycle-hooks';
+
+export default () => <DataDisplayWithLifecycle dataSource="https://api.example.com" />;
+
+```
+</p></details>
+
+**Modern React Hooks equivalent:**
+
+```tsx
+import React, { useState, useEffect } from 'react';
+
+// Component props interface
+interface DataDisplayProps {
+  dataSource: string;
+}
+
+// Modern React Hooks equivalent of recompose lifecycle
+export const DataDisplayWithHooks: React.FC<DataDisplayProps> = ({ 
+  dataSource 
+}) => {
+  const [data, setData] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // useEffect replaces componentDidMount/componentWillUnmount
+  useEffect(() => {
+    // Simulate async data fetch
+    const timer = setTimeout(() => {
+      try {
+        setData(`Fetched from ${dataSource}`);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to fetch data');
+        setLoading(false);
+      }
+    }, 1000);
+
+    // Cleanup function (replaces componentWillUnmount)
+    return () => {
+      clearTimeout(timer);
+      console.log('Component unmounting');
+    };
+  }, [dataSource]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  return <div>Data: {data}</div>;
+};
+
+```
+
+[⇧ back to top](#table-of-contents)
+
+### - compose
+
+Combines multiple HOCs into a single HOC.
+
+**Recompose approach:**
+
+```tsx
+import React from 'react';
+import { withState, withHandlers, withProps, compose } from 'recompose';
+
+// Component props interface
+interface TodoProps {
+  title: string;
+  todos: string[];
+  inputValue: string;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAddTodo: () => void;
+  onRemoveTodo: (index: number) => void;
+  todoCount: number;
+}
+
+// Base component
+const TodoList: React.FC<TodoProps> = ({
+  title,
+  todos,
+  inputValue,
+  onInputChange,
+  onAddTodo,
+  onRemoveTodo,
+  todoCount,
+}) => (
+  <div>
+    <h2>{title}</h2>
+    <p>Total todos: {todoCount}</p>
+    <div>
+      <input 
+        type="text" 
+        value={inputValue} 
+        onChange={onInputChange}
+        placeholder="Enter todo"
+      />
+      <button onClick={onAddTodo}>Add</button>
+    </div>
+    <ul>
+      {todos.map((todo, index) => (
+        <li key={index}>
+          {todo}
+          <button onClick={() => onRemoveTodo(index)}>Remove</button>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+// Intermediate props with state
+interface WithTodoState {
+  todos: string[];
+  setTodos: (todos: string[]) => void;
+  inputValue: string;
+  setInputValue: (value: string) => void;
+}
+
+// Enhanced component combining multiple HOCs
+export const EnhancedTodoList = compose<
+  TodoProps,
+  { title: string }
+>(
+  // Add state for todos list
+  withState('todos', 'setTodos', [] as string[]),
+  // Add state for input value
+  withState('inputValue', 'setInputValue', ''),
+  // Add event handlers
+  withHandlers<WithTodoState, Partial<TodoProps>>({
+    onInputChange: ({ setInputValue }) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setInputValue(e.target.value);
+    },
+    onAddTodo: ({ todos, setTodos, inputValue, setInputValue }) => () => {
+      if (inputValue.trim()) {
+        setTodos([...todos, inputValue]);
+        setInputValue('');
+      }
+    },
+    onRemoveTodo: ({ todos, setTodos }) => (index: number) => {
+      setTodos(todos.filter((_, i) => i !== index));
+    },
+  }),
+  // Add computed props
+  withProps<{ todoCount: number }, WithTodoState>(({ todos }) => ({
+    todoCount: todos.length,
+  }))
+)(TodoList);
+
+```
+<details><summary><i>Click to expand</i></summary><p>
+
+```tsx
+import React from 'react';
+import { EnhancedTodoList } from './compose-multiple';
+
+export default () => <EnhancedTodoList title="My Todo List" />;
+
+```
+</p></details>
+
+**Modern React Hooks equivalent:**
+
+```tsx
+import React, { useState, useCallback, useMemo } from 'react';
+
+// Component props interface
+interface TodoProps {
+  title: string;
+}
+
+// Modern React Hooks equivalent of composed recompose HOCs
+export const TodoListWithHooks: React.FC<TodoProps> = ({ title }) => {
+  // State management (replaces withState)
+  const [todos, setTodos] = useState<string[]>([]);
+  const [inputValue, setInputValue] = useState('');
+
+  // Event handlers (replaces withHandlers)
+  const onInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  }, []);
+
+  const onAddTodo = useCallback(() => {
+    if (inputValue.trim()) {
+      setTodos((prevTodos) => [...prevTodos, inputValue]);
+      setInputValue('');
+    }
+  }, [inputValue]);
+
+  const onRemoveTodo = useCallback((index: number) => {
+    setTodos((prevTodos) => prevTodos.filter((_, i) => i !== index));
+  }, []);
+
+  // Computed props (replaces withProps)
+  const todoCount = useMemo(() => todos.length, [todos.length]);
+
+  return (
+    <div>
+      <h2>{title}</h2>
+      <p>Total todos: {todoCount}</p>
+      <div>
+        <input 
+          type="text" 
+          value={inputValue} 
+          onChange={onInputChange}
+          placeholder="Enter todo"
+        />
+        <button onClick={onAddTodo}>Add</button>
+      </div>
+      <ul>
+        {todos.map((todo, index) => (
+          <li key={index}>
+            {todo}
+            <button onClick={() => onRemoveTodo(index)}>Remove</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+```
 
 [⇧ back to top](#table-of-contents)
 
