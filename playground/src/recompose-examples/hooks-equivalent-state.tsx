@@ -18,7 +18,7 @@ export const CounterWithHooks: React.FC<CounterProps> = ({
       <span>
         {label}: {count}
       </span>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
+      <button onClick={() => setCount((prev) => prev + 1)}>Increment</button>
     </div>
   );
 };

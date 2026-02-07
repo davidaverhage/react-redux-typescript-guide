@@ -1061,7 +1061,7 @@ export const CounterWithHooks: React.FC<CounterProps> = ({
       <span>
         {label}: {count}
       </span>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
+      <button onClick={() => setCount((prev) => prev + 1)}>Increment</button>
     </div>
   );
 };
@@ -1229,7 +1229,7 @@ export const UserCardWithProps = withProps<
   { user: User } // outer props
 >(({ user }) => ({
   fullName: `${user.firstName} ${user.lastName}`,
-  initials: `${user.firstName[0]}${user.lastName[0]}`,
+  initials: `${user.firstName[0] || ''}${user.lastName[0] || ''}`,
 }))(UserCard);
 
 ```
@@ -1276,7 +1276,7 @@ export const UserCardWithHooks: React.FC<UserCardProps> = ({ user }) => {
   );
 
   const initials = useMemo(
-    () => `${user.firstName[0]}${user.lastName[0]}`,
+    () => `${user.firstName[0] || ''}${user.lastName[0] || ''}`,
     [user.firstName, user.lastName]
   );
 

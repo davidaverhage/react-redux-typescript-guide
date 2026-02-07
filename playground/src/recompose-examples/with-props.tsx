@@ -31,5 +31,5 @@ export const UserCardWithProps = withProps<
   { user: User } // outer props
 >(({ user }) => ({
   fullName: `${user.firstName} ${user.lastName}`,
-  initials: `${user.firstName[0]}${user.lastName[0]}`,
+  initials: `${user.firstName[0] || ''}${user.lastName[0] || ''}`,
 }))(UserCard);

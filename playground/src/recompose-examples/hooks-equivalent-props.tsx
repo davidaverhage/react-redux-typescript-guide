@@ -21,7 +21,7 @@ export const UserCardWithHooks: React.FC<UserCardProps> = ({ user }) => {
   );
 
   const initials = useMemo(
-    () => `${user.firstName[0]}${user.lastName[0]}`,
+    () => `${user.firstName[0] || ''}${user.lastName[0] || ''}`,
     [user.firstName, user.lastName]
   );
 
